@@ -5,6 +5,9 @@
 }
 .top .top_left img {}
 .top .top_right {padding: 5px; padding-top: 12px; margin-left:auto;}
+.top .top_right #color {
+    color: #0BEC12;
+}
 .top .top_right .list {
     padding: 5px; text-align: center; margin: 0 auto; color: #ffffff;
     display: inline-block;
