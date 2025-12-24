@@ -60,7 +60,6 @@
 }
 .interview .interview_box:hover .more div:nth-child(3) {
     width: 10px; 
-    margin-left: auto;
 }
 .interview .interview_box .interview_box_top {
     background-color: #333333;
@@ -84,6 +83,9 @@
     gap: 6px;
     padding: 0;
 }
+.interview .interview_box_top .more div:nth-child(3) {
+    margin-left: auto;
+} 
 .interview .interview_box_top .more div { 
     width: 22px;
     height: 2px;
