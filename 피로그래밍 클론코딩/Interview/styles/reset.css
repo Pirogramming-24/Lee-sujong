@@ -1,4 +1,4 @@
-* {box-sizing: border-box;}
+* {box-sizing: border-box; background-color: #000000}
 html, body, h1, h2, p, div, span footer main,
 img, a {
     margin: 0;
