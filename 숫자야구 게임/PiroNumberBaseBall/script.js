@@ -108,13 +108,11 @@ function printResult() {
 function check_numbers() {
     readInput();
 
-    // 미입력시 값 초기화
-    if ( !v1 || !v2 || !v3) {
-        document.getElementById("number1").value = "";
-        document.getElementById("number2").value = "";
-        document.getElementById("number3").value = "";
-        return;
-    }   
+    document.getElementById("number1").value = "";
+    document.getElementById("number2").value = "";
+    document.getElementById("number3").value = "";
+
+    if(v1 === "" || v2 === "" || v3 === "") return;
 
     attempts--;
 
@@ -140,7 +138,7 @@ function check_numbers() {
     // 실패
     if (!success && attempts === 0) fail = true;
 
-    // 버튼 비활성화
+    // 게임이 끝났을 시 버튼 비활성화
     if (success || fail) {
         const btn = document.querySelector(".submit-button");
         
