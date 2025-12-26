@@ -49,7 +49,7 @@ function printResult() {
     row.style.display = "flex";
     row.style.alignItems = "center";
     row.style.justifyContent = "space-between";
-    row.style.gap = "100px";
+    row.style.gap = "80px";
     row.style.margin = "10px 0";
 
     // 왼쪽: 입력 숫자들
