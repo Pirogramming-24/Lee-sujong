@@ -10,7 +10,7 @@
 <body>
     <a href="{% url 'reviews:list' %}">my Movie reviews</a>
 
-    <h2>{{ review.title }}</h2>
+    <h2>제목: {{ review.title }}</h2>
 
     <p>감독: {{ review.director }}</p>
     <p>주연: {{ review.actors }}</p>
@@ -20,6 +20,7 @@
     <p>러닝타임: {{ review.runtime_hm }}</p>
 
     <hr>
+    <h3>리뷰</h3>
     <p>{{ review.content }}</p>
 
     <a href="{% url 'reviews:update' review.pk %}">수정</a>
