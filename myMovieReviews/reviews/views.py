@@ -1,4 +1,5 @@
 from django.http import JsonResponse
 
-def index(request):
-    return JsonResponse({"message": "hello"})
+def review_list(request):
+    reviews = Review.objects.all()
+    return render(request, "reviews/list.html", {"review" : reviews})
