@@ -22,6 +22,7 @@ def review_create(request):
     return render(request, "reviews/form.html", {"form": form, "mode": "create"})
 
 def review_update(request, pk):
+    review = get_object_or_404(Review, pk=pk)
     if request.method == "POST":
         form = ReviewForm(request.POST, instance = review)
         if form.is_valid():
@@ -31,3 +32,9 @@ def review_update(request, pk):
     else:
         form = ReviewForm(instance = review)
     return render(request, "reviews/form.html", {"form": form, "mode": "create"})
+
+def review_delete(request, pk):
+    review = get_object_or_404(Review, pk=pk)
+    if request.method == "POST":
+        review.delete()
+    return redirect("reviews:list")
