@@ -14,10 +14,23 @@ RATING_CHOICES = [
     (Decimal("5.0"), "5.0"),
 ]
 
+GENRE_CHOICES = [
+    ("액션", "액션"),
+    ("코미디", "코미디"),
+    ("드라마", "드라마"),
+    ("로맨스", "로맨스"),
+    ("스릴러", "스릴러"),
+    ("공포", "공포"),
+    ("SF", "SF"),
+    ("판타지", "판타지"),
+    ("애니메이션", "애니메이션"),
+    ("다큐멘터리", "다큐멘터리"),
+]
+
 class Review(models.Model):
     title = models.CharField(max_length=100)
     release_year = models.IntegerField()
-    genre = models.CharField(max_length=50)
+    genre = models.CharField(max_length=20, choices=GENRE_CHOICES)
     rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
