@@ -4,7 +4,8 @@ from .forms import ReviewForm
 
 def review_list(request):
     reviews = Review.objects.all()
-    return render(request, "reviews/list.html", {"review" : reviews})
+    print("LIST VIEW CALLED")
+    return render(request, "reviews/list.html", {"reviews" : reviews})
 
 def review_detail(request, pk):
     review = get_object_or_404(Review, pk=pk)
