@@ -39,3 +39,22 @@ def review_delete(request, pk):
     if request.method == "POST":
         review.delete()
     return redirect("reviews:list")
+
+def review_list(request):
+    sort = request.GET.get("sort", "latest")
+
+    sort_map = {
+        "latest": "-id",
+        "oldest": "id",
+        "title_asc": "title",
+        "title_desc": "-title",
+        "year_asc": "release_year",
+        "year_desc": "-release_year",
+        "rating_asc": "rating",
+        "rating_desc": "-rating",
+    }
+
+    order = sort_map.get(sort, "-id")
+    reviews = Review.objects.all().order_by(order)
+
+    return render(request, "reviews/list.html", {"reviews": reviews, "sort": sort})

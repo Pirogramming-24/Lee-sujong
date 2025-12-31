@@ -12,6 +12,18 @@
 
     <a href="{% url 'reviews:create' %}">리뷰 작성</a>
 
+    <div>
+        <br>
+        <strong>정렬:</strong>
+        <a href="{% url 'reviews:list' %}?sort=latest">최신순</a> |
+        <a href="{% url 'reviews:list' %}?sort=oldest">오래된순</a> |
+        <a href="{% url 'reviews:list' %}?sort=rating_desc">별점 높은순</a> |
+        <a href="{% url 'reviews:list' %}?sort=rating_asc">별점 낮은순</a> |
+        <a href="{% url 'reviews:list' %}?sort=year_desc">개봉년도 최신순</a> |
+        <a href="{% url 'reviews:list' %}?sort=year_asc">개봉년도 오래된순</a> |
+        <a href="{% url 'reviews:list' %}?sort=title_asc">제목순</a> |
+        <a href="{% url 'reviews:list' %}?sort=title_desc">목제순</a>
+    </div>
     <ul>
         {% for r in reviews %}
         <li>
