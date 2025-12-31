@@ -48,3 +48,10 @@ class Review(models.Model):
 
     def __str__(self):
         return self.title
+    runtime = models.IntegerField()  # 총 분
+
+    @property
+    def runtime_hm(self):
+        h = self.runtime // 60
+        m = self.runtime % 60
+        return f"{h}시간 {m}분" if h else f"{m}분"
