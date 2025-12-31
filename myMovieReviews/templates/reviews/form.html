@@ -8,6 +8,19 @@
 </head>
 
 <body>
+    <a href="{% url 'reviews:list' %}">my Movie reviews</a>
+
+    {% if mode == "create" %}
+    <h1>리뷰 작성</h1>
+    {% else %}
+    <h1>리뷰 수정</h1>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">저장</button>
+    </form>
 
 </body>
 

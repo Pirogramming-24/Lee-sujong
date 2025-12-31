@@ -8,6 +8,26 @@
 </head>
 
 <body>
+    <a href="{% url 'reviews:list' %}">my Movie reviews</a>
+
+    <h2>{{ review.title }}</h2>
+
+    <p>감독: {{ review.director }}</p>
+    <p>주연: {{ review.actors }}</p>
+    <p>개봉년도: {{ review.release_year }}</p>
+    <p>장르: {{ review.genre }}</p>
+    <p>별점: ★{{ review.rating }}</p>
+    <p>러닝타임: {{ review.runtime }}분</p>
+
+    <hr>
+    <p>{{ review.content }}</p>
+
+    <a href="{% url 'reviews:update' review.pk %}">수정</a>
+
+    <form action="{% url 'reviews:delete' review.pk %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">삭제</button>
+    </form>
 
 </body>
 

@@ -8,6 +8,22 @@
 </head>
 
 <body>
+    <h1>My Movie Reviews</h1>
+
+    <a href="{% url 'reviews:create' %}">리뷰 작성</a>
+
+    <ul>
+        {% for r in reviews %}
+        <li>
+            <a href="{% url 'reviews:detail' r.pk %}">
+                {{ r.title }}
+            </a>
+            ({{ r.release_year }}) / {{ r.genre }} / ★{{ r.rating }}
+        </li>
+        {% empty %}
+        <li>아직 리뷰가 없습니다.</li>
+        {% endfor %}
+    </ul>
 
 </body>
 
