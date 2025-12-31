@@ -29,7 +29,7 @@ def review_update(request, pk):
         if form.is_valid():
             if form.is_valid():
                 form.save()
-                return redirect("reviews:list", pk=review.pk)
+                return render(request, "reviews/detail.html", {"review": review})
     else:
         form = ReviewForm(instance = review)
     return render(request, "reviews/form.html", {"form": form, "mode": "create"})
