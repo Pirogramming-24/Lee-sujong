@@ -3,10 +3,20 @@ from .models import Idea, IdeaStar
 from .forms import IdeaForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
 
 def main(request):
-    ideas = Idea.objects.select_related("devtool").order_by("-star__is_starred", "-created_at")
-    return render(request, "ideas/main.html", {"ideas": ideas})
+    sort = request.GET.get("sort", "star")
+
+    qs = Idea.objects.select_related("devtool")
+
+    paginator = Paginator(qs, 4)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "ideas/main.html", {
+        "page_obj": page_obj,
+    })
 
 def idea_create(request):
     if request.method == "POST":
