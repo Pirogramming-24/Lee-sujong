@@ -16,6 +16,7 @@ class Idea(models.Model):
 class IdeaStar(models.Model):
     idea = models.OneToOneField(Idea, on_delete=models.CASCADE, related_name="star")
     is_starred = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"⭐ {self.idea.title} ({self.is_starred})"
