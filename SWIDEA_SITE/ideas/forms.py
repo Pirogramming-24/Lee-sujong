@@ -15,3 +15,9 @@ class IdeaForm(forms.ModelForm):
             "content": "설명",
             "devtool": "사용 개발툴",
         }
+        widgets = {
+            "content": forms.Textarea(attrs={
+                "rows": 8,          # 줄 수
+                "class": "form-textarea",
+            }),
+        }
