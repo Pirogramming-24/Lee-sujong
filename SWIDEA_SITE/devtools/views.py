@@ -19,7 +19,8 @@ def devtool_create(request):
 
 def devtool_detail(request, pk):
     devtool = get_object_or_404(DevTool, pk=pk)
-    return render(request, "devtools/detail.html", {"devtool": devtool})
+    ideas = devtool.ideas.all()   # Idea.devtool FK에 related_name="ideas"일 때
+    return render(request, "devtools/detail.html", {"devtool": devtool, "ideas": ideas})
 
 def devtool_update(request, pk):
     devtool = get_object_or_404(DevTool, pk=pk)
