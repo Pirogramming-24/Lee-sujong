@@ -4,18 +4,37 @@ from .forms import IdeaForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+from django.db.models import Value, BooleanField
+from django.db.models.functions import Coalesce
 
 def main(request):
     sort = request.GET.get("sort", "star")
 
-    qs = Idea.objects.select_related("devtool")
+    qs = (
+        Idea.objects
+        .select_related("devtool")
+        .annotate(
+            starred=Coalesce("star__is_starred", Value(False), output_field=BooleanField())
+        )
+    )
+
+    if sort == "name":
+        qs = qs.order_by("title")
+    elif sort == "old":
+        qs = qs.order_by("created_at")
+    elif sort == "latest":
+        qs = qs.order_by("-created_at")
+    elif sort == "interest":
+        qs = qs.order_by("-interest", "-created_at")
+    else:  # "star"
+        qs = qs.order_by("-starred", "-created_at")
 
     paginator = Paginator(qs, 4)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator.get_page(request.GET.get("page"))
 
     return render(request, "ideas/main.html", {
         "page_obj": page_obj,
+        "sort": sort,
     })
 
 def idea_create(request):
