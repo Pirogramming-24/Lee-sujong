@@ -43,3 +43,23 @@ def idea_delete(request, pk):
     if request.method == "POST":
         idea.delete()
     return redirect("home")
+
+@require_POST
+def idea_toggle_star(request, pk):
+    idea = get_object_or_404(Idea, pk=pk)
+    star, _ = IdeaStar.objects.get_or_create(idea=idea)
+
+    star.is_starred = not star.is_starred
+    star.save()
+
+    return JsonResponse({"starred": star.is_starred})
+
+@require_POST
+def idea_interest(request, pk):
+    idea = get_object_or_404(Idea, pk=pk)
+
+    delta = int(request.POST.get("delta", 0))
+    idea.interest = max(0, idea.interest + delta)
+    idea.save()
+
+    return JsonResponse({"interest": idea.interest})
