@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Idea Site</title>
+</head>
+
+<body>
+
+    <nav>
+        <a href="{% url 'home' %}">홈</a>
+        <a href="{% url 'ideas:create' %}">아이디어 등록</a>
+        <a href="{% url 'devtools:main' %}">개발툴</a>
+    </nav>
+
+    <hr>
+
+    {% block content %}{% endblock %}
+
+    <!-- CSRF 토큰 JS -->
+    <script>
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
+
+</body>
+
+</html>

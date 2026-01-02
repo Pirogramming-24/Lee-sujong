@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>아이디어 목록</h1>
+
+{% for idea in ideas %}
+<div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+
+    {% if idea.image %}
+    <img src="{{ idea.image.url }}" width="150">
+    {% endif %}
+
+    <h3>
+        <a href="{% url 'ideas:detail' idea.pk %}">
+            {{ idea.title }}
+        </a>
+    </h3>
+
+    <!-- 별 토글 -->
+    <button class="star-btn" data-id="{{ idea.pk }}">
+        {% if idea.star.is_starred %}★{% else %}☆{% endif %}
+    </button>
+
+    <!-- interest -->
+    <div>
+        <button class="interest-btn" data-id="{{ idea.pk }}" data-delta="-1">-</button>
+        <span id="interest-{{ idea.pk }}">{{ idea.interest }}</span>
+        <button class="interest-btn" data-id="{{ idea.pk }}" data-delta="1">+</button>
+    </div>
+
+</div>
+{% empty %}
+<p>아이디어가 없습니다.</p>
+{% endfor %}
+
+<!-- AJAX -->
+<script>
+    document.addEventListener("click", async (e) => {
+
+        // ⭐ 별 토글
+        if (e.target.classList.contains("star-btn")) {
+            const id = e.target.dataset.id;
+
+            const res = await fetch(`/ideas/${id}/toggle-star/`, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken }
+            });
+
+            const data = await res.json();
+            e.target.textContent = data.starred ? "★" : "☆";
+        }
+
+        // ➕➖ interest
+        if (e.target.classList.contains("interest-btn")) {
+            const id = e.target.dataset.id;
+            const delta = e.target.dataset.delta;
+
+            const body = new URLSearchParams();
+            body.append("delta", delta);
+
+            const res = await fetch(`/ideas/${id}/interest/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: body.toString(),
+            });
+
+            const data = await res.json();
+            document.querySelector(`#interest-${id}`).textContent = data.interest;
+        }
+
+    });
+</script>
+
+{% endblock %}
