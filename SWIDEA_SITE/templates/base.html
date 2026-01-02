@@ -6,12 +6,16 @@
     <title>Idea Site</title>
 </head>
 
-<body>
+<body style="background-color: #ffffff;">
 
-    <nav>
-        <a href="{% url 'home' %}">홈</a>
-        <a href="{% url 'ideas:create' %}">아이디어 등록</a>
-        <a href="{% url 'devtools:main' %}">개발툴</a>
+    <nav style="text-align: center; font-size: 1.4rem; display:flex; justify-content: space-around; padding: 0 100px;">
+        <div style="margin-right: 100px;">
+            My SW Ideas Manage
+        </div>
+        <a href="{% url 'ideas:create' %}" style="color: #000; text-decoration: none;">아이디어 등록</a>
+        <a href="{% url 'home' %}" style="color: #000; text-decoration: none;">아이디어 관리</a>
+        <a href="{% url 'devtools:create' %}" style="color: #000; text-decoration: none;">개발툴 등록</a>
+        <a href="{% url 'devtools:main' %}" style="color: #000; text-decoration: none;">개발툴 관리</a>
     </nav>
 
     <hr>

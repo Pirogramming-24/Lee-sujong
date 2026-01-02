@@ -1,77 +1,335 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .page-bg {
+        background-color: rgba(244, 244, 244, 0.9);
+        min-height: 100vh;
+    }
 
-<h1>아이디어 목록</h1>
+    .main-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
 
-{% for idea in ideas %}
-<div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+    .main-header {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        margin-bottom: 16px;
+        padding: 32px 28px;
+    }
 
-    {% if idea.image %}
-    <img src="{{ idea.image.url }}" width="150">
-    {% endif %}
+    .main-title {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+    }
 
-    <h3>
-        <a href="{% url 'ideas:detail' idea.pk %}">
-            {{ idea.title }}
-        </a>
-    </h3>
+    .main-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
 
-    <!-- 별 토글 -->
-    <button class="star-btn" data-id="{{ idea.pk }}">
-        {% if idea.star.is_starred %}★{% else %}☆{% endif %}
-    </button>
+    .sort-select {
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+    }
 
-    <!-- interest -->
-    <div>
-        <button class="interest-btn" data-id="{{ idea.pk }}" data-delta="-1">-</button>
-        <span id="interest-{{ idea.pk }}">{{ idea.interest }}</span>
-        <button class="interest-btn" data-id="{{ idea.pk }}" data-delta="1">+</button>
+    .btn {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none;
+        color: #111827;
+    }
+
+    .btn.primary {
+        background: #111827;
+        color: #fff;
+        border-color: #111827;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .idea-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .thumb-wrap {
+        position: relative;
+        height: 160px;
+        background: #e5e7eb;
+    }
+
+    .thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .thumb.placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    /* 별 오버레이 */
+    .star-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: none;
+        background: rgba(0, 0, 0, 0.55);
+        color: #ffd54a;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    .idea-body {
+        padding: 12px 12px 14px;
+    }
+
+    .idea-title {
+        display: block;
+        font-weight: 800;
+        margin-bottom: 10px;
+        color: #111827;
+        text-decoration: none;
+    }
+
+    .idea-title:hover {
+        text-decoration: underline;
+    }
+
+    .idea-meta {
+        font-size: 13px;
+        color: #111827;
+        display: grid;
+        gap: 8px;
+    }
+
+    .interest-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .mini-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        border: 1px solid #9ca3af;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .interest-num {
+        min-width: 18px;
+        display: inline-block;
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .muted {
+        color: #000000;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .page-btn {
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        color: #111827;
+    }
+
+    .page-btn:hover {
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .page-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .page-info {
+        color: #000000;
+        font-weight: 700;
+    }
+
+    .sort-select {
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        font-size: 13px;
+    }
+
+    .thumb {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .detail-sub {
+        margin: 6px 0 18px;
+        font-size: 12px;
+    }
+</style>
+
+<div class="page-bg">
+    <div class="main-wrap">
+
+        <div class="main-header">
+            <h1 class="main-title">Idea List</h1>
+            <span class="detail-sub">나의 아이디어를 잊지 말고 기록해보세요</span>
+        </div>
+
+        <form method="get" style="margin-bottom: 20px;">
+            <select name="sort" class="sort-select" onchange="this.form.submit()">
+                <option value="star" {% if sort == "star" %}selected{% endif %}>찜하기순</option>
+                <option value="latest" {% if sort == "latest" %}selected{% endif %}>최신순</option>
+                <option value="old" {% if sort == "old" %}selected{% endif %}>등록순</option>
+                <option value="name" {% if sort == "name" %}selected{% endif %}>이름순</option>
+                <option value="interest" {% if sort == "interest" %}selected{% endif %}>관심도순</option>
+            </select>
+        </form>
+
+        <div class="card-grid">
+            {% for idea in page_obj %}
+            <div class="idea-card" id="card-{{ idea.pk }}">
+                <div class="thumb-wrap">
+                    {% if idea.image %}
+                    <img class="thumb" src="{{ idea.image.url }}" alt="{{ idea.title }}">
+                    {% else %}
+                    <div class="thumb placeholder">No Image</div>
+                    {% endif %}
+
+                    <!-- 별 오버레이 -->
+                    <button class="star-btn" data-id="{{ idea.pk }}" aria-label="찜">
+                        {% if idea.star.is_starred %}★{% else %}☆{% endif %}
+                    </button>
+                </div>
+
+                <div class="idea-body">
+                    <a class="idea-title" href="{% url 'ideas:detail' idea.pk %}">
+                        {{ idea.title }}
+                    </a>
+
+                    <div class="idea-meta">
+                        <div>예상 개발 툴 : <b>{{ idea.devtool.name }}</b></div>
+
+                        <div class="interest-row">
+                            아이디어 관심도 :
+                            <button class="mini-btn interest-btn" data-id="{{ idea.pk }}" data-delta="-1">-</button>
+                            <span class="interest-num" id="interest-{{ idea.pk }}">{{ idea.interest }}</span>
+                            <button class="mini-btn interest-btn" data-id="{{ idea.pk }}" data-delta="1">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% empty %}
+            <p class="muted">등록된 아이디어가 없어요.</p>
+            {% endfor %}
+        </div>
+
     </div>
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a class="page-btn" href="?sort={{ sort }}&page={{ page_obj.previous_page_number }}">이전</a>
+        {% else %}
+        <span class="page-btn disabled">이전</span>
+        {% endif %}
 
+        <!--페이지 정보-->
+        <span class="page-info">
+            <!--페이지 계산-->
+            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a class="page-btn" href="?sort={{ sort }}&page={{ page_obj.next_page_number }}">다음</a>
+        {% else %}
+        <span class="page-btn disabled">다음</span>
+        {% endif %}
+    </div>
 </div>
-{% empty %}
-<p>아이디어가 없습니다.</p>
-{% endfor %}
 
-<!-- AJAX -->
 <script>
-    document.addEventListener("click", async (e) => {
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
 
-        // ⭐ 별 토글
+    document.addEventListener("click", async (e) => {
         if (e.target.classList.contains("star-btn")) {
             const id = e.target.dataset.id;
 
             const res = await fetch(`/ideas/${id}/toggle-star/`, {
                 method: "POST",
-                headers: { "X-CSRFToken": csrftoken }
+                headers: { "X-CSRFToken": csrftoken },
             });
 
             const data = await res.json();
             e.target.textContent = data.starred ? "★" : "☆";
+
+            const card = document.querySelector(`#card-${id}`);
+            const grid = document.querySelector(".card-grid");
+            if (data.starred) grid.prepend(card);
+            else grid.append(card); 
         }
 
-        // ➕➖ interest
         if (e.target.classList.contains("interest-btn")) {
             const id = e.target.dataset.id;
             const delta = e.target.dataset.delta;
 
-            const body = new URLSearchParams();
-            body.append("delta", delta);
+            const formData = new URLSearchParams();
+            formData.append("delta", delta);
 
             const res = await fetch(`/ideas/${id}/interest/`, {
                 method: "POST",
                 headers: {
-                    "X-CSRFToken": csrftoken,
                     "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": csrftoken
                 },
-                body: body.toString(),
+                body: formData.toString(),
             });
 
             const data = await res.json();
             document.querySelector(`#interest-${id}`).textContent = data.interest;
         }
-
     });
 </script>
-
 {% endblock %}

@@ -1,0 +1,224 @@
+<style>
+    /* 배경 */
+    .devd-bg {
+        min-height: 100vh;
+        background-color: #f4f4f4e6;
+        padding: 34px 16px;
+    }
+
+    .devd-wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .devd-title {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 900;
+    }
+
+    .devd-sub {
+        margin: 6px 0 18px;
+        font-size: 12px;
+    }
+
+    /* 큰 카드 박스 */
+    .devd-card {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.10);
+        border-radius: 10px;
+        padding: 16px 18px 18px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        text-align: left;
+    }
+
+    .devd-inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    /* 개발툴 제목/설명 */
+    .devd-name {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .devd-line {
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .devd-label {
+        font-weight: 900;
+    }
+
+    .devd-kind {
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .devd-content {
+        margin: 10px 0 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    /* 아이디어 목록 섹션 */
+    .devd-section {
+        margin-top: 14px;
+    }
+
+    .devd-section-title {
+        margin: 0 0 8px;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .devd-ideas {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    .devd-ideas li {
+        margin: 6px 0;
+    }
+
+    .devd-link {
+        text-decoration: none;
+        font-weight: 800;
+        color: #000;
+    }
+
+    .devd-link:hover {
+        text-decoration: underline;
+    }
+
+    .devd-empty {
+        margin: 0;
+        font-size: 13px;
+    }
+
+    .devd-actions {
+        margin-top: 16px;
+        justify-content: center;
+    }
+
+    /* 버튼 */
+    .btn-row .btn,
+    .btn-row button.btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 72px;
+        /* 버튼 폭 통일(원하면 조절) */
+        height: 44px;
+        /* 높이 통일 */
+        padding: 0 16px;
+        /* 좌우 여백 */
+
+        line-height: 1;
+        /* 글자 때문에 높이 달라지는 거 방지 */
+        font-size: 14px;
+        font-weight: 700;
+
+        box-sizing: border-box;
+    }
+
+    .btn-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 9px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: #00000033;
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: rgba(92, 92, 92, 0.2);
+    }
+
+    .btn.primary {
+        background: rgba(59, 130, 246, 0.85);
+        /* 파란색 */
+        border-color: rgba(59, 130, 246, 1);
+    }
+
+    .btn.danger {
+        background: rgba(239, 68, 68, 0.85);
+        /* 빨강 */
+        border-color: rgba(239, 68, 68, 1);
+        font-size: 16px;
+    }
+</style>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="devd-bg">
+    <div class="devd-wrap">
+
+        <h1 class="devd-title">DevTool Detail</h1>
+        <p class="devd-sub">개발툴 상세정보를 확인하고, 관련 아이디어 목록을 확인하세요.</p>
+
+        <div class="devd-card">
+            <div class="devd-inner">
+                <div class="devd-left">
+                    <h2 class="devd-name">{{ devtool.name }}</h2>
+
+                    <div class="devd-line">
+                        <span class="devd-label">|</span>
+                        <span class="devd-kind">{{ devtool.kind }}</span>
+                    </div>
+
+                    <p class="devd-content">{{ devtool.content }}</p>
+
+                    <hr>
+                    <div class="devd-section">
+                        <h3 class="devd-section-title">> 만들 수 있는 SW 목록</h3>
+                        {% if ideas %}
+                        <ul class="devd-ideas">
+                            {% for idea in ideas %}
+                            <li>
+                                <a class="devd-link" href="{% url 'ideas:detail' idea.pk %}">
+                                    {{ idea.title }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="devd-empty">연결된 아이디어가 아직 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="btn-row devd-actions">
+                <form action="{% url 'devtools:delete' devtool.pk %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn danger">삭제</button>
+                </form>
+
+                <a class="btn" href="{% url 'devtools:main' %}">목록</a>
+                <a class="btn primary" href="{% url 'devtools:update' devtool.pk %}">수정</a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

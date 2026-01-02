@@ -1,0 +1,152 @@
+<style>
+    .devf-bg {
+        min-height: 100vh;
+        background-color: #f4f4f4e6;
+        padding: 34px 16px;
+    }
+
+    .devf-wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .devf-title {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 900;
+    }
+
+    .devf-sub {
+        margin: 6px 0 18px;
+        font-size: 12px;
+    }
+
+    /* 폼 카드(투명 테두리 박스) */
+    .devf-card {
+        margin: 0 auto;
+        max-width: 520px;
+        padding: 14px 16px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.10);
+        border-radius: 10px;
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+    }
+
+    /* 폼 */
+    .devf-form {
+        display: grid;
+        gap: 14px;
+        text-align: left;
+    }
+
+    .devf-form .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    /* 입력 UI */
+    .devf-form input[type="text"],
+    .devf-form textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.92);
+        color: #111827;
+        font-size: 14px;
+    }
+
+    .devf-form textarea {
+        min-height: 170px;
+        resize: vertical;
+    }
+
+    .devf-form input:focus,
+    .devf-form textarea:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+    }
+
+    /* 버튼 영역 */
+    .devf-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        margin-top: 4px;
+    }
+
+    .devf-submit {
+        width: 160px;
+        height: 38px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(0, 0, 0, 0.25);
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .devf-submit:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .devf-back {
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .devf-back:hover {
+        text-decoration: underline;
+    }
+
+    .error {
+        margin-top: 6px;
+        font-size: 12px;
+    }
+</style>
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="devf-bg">
+    <div class="devf-wrap">
+
+        <h1 class="devf-title">DevTool Register</h1>
+        <p class="devf-sub">개발툴 등록 또는 수정 후 저장 버튼을 눌러주세요.</p>
+
+        <div class="devf-card">
+            <form method="post" class="devf-form">
+                {% csrf_token %}
+
+                <div class="field">
+                    <label for="{{ form.name.id_for_label }}">이름:</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<div class="error">{{ form.name.errors }}</div>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.kind.id_for_label }}">종류:</label>
+                    {{ form.kind }}
+                    {% if form.kind.errors %}<div class="error">{{ form.kind.errors }}</div>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.content.id_for_label }}">개발툴 설명:</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}<div class="error">{{ form.content.errors }}</div>{% endif %}
+                </div>
+
+                <div class="devf-actions">
+                    <button type="submit" class="devf-submit">SUBMIT</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

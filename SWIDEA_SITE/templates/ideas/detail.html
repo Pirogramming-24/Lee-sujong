@@ -1,81 +1,284 @@
-{% extends "base.html" %}
-{% block content %}
+<style>
+    /* 배경 */
+    .detail-bg {
+        min-height: 100vh;
+        background-color: #f4f4f4e6;
+        padding: 36px 16px;
+    }
 
-<h1>{{ idea.title }}</h1>
+    .detail-wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        text-align: center;
+    }
 
-{% if idea.image %}
-<img src="{{ idea.image.url }}" width="300">
-{% endif %}
+    .detail-title {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+    }
 
-<p>{{ idea.content }}</p>
-<p>관심도: <span id="interest-{{ idea.pk }}">{{ idea.interest }}</span></p>
+    .detail-sub {
+        margin: 6px 0 18px;
+        font-size: 12px;
+    }
 
-<p>
-    개발툴:
-    <a href="{% url 'devtools:detail' idea.devtool.pk %}">
-        {{ idea.devtool.name }}
-    </a>
-</p>
+    /* 메인 카드 */
+    .detail-card {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.10);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(2px);
+    }
 
-<!-- 별 -->
-<button class="star-btn" data-id="{{ idea.pk }}">
-    {% if star.is_starred %}★{% else %}☆{% endif %}
-</button>
+    /* 내부 2컬럼 */
+    .detail-inner {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 18px;
+        align-items: start;
+        text-align: left;
+    }
 
-<!-- interest -->
-<div>
-    <button class="interest-btn" data-id="{{ idea.pk }}" data-delta="-1">-</button>
-    <button class="interest-btn" data-id="{{ idea.pk }}" data-delta="1">+</button>
-</div>
+    /* 이미지 */
+    .detail-left {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-<hr>
+    .detail-img {
+        width: 100%;
+        height: 220px;
+        object-fit: contain;
+        /* 로고 느낌이면 contain 추천 */
+        background: #00000033;
+        border-radius: 8px;
+    }
 
-<a href="{% url 'ideas:update' idea.pk %}">수정</a>
+    .detail-img.placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
 
-<form action="{% url 'ideas:delete' idea.pk %}" method="post" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit">삭제</button>
-</form>
+    /* 오른쪽 텍스트 */
+    .title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
 
-<a href="{% url 'home' %}">목록</a>
+    .idea-title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 900;
+    }
 
-<!-- AJAX -->
+    .info-block {
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.20);
+    }
+
+    .info-line {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 10px;
+        padding: 8px 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .info-line:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .info-value {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .link {
+        text-decoration: none;
+        font-weight: 800;
+        color: #000;
+    }
+
+    .link:hover {
+        text-decoration: underline;
+    }
+
+    /* 버튼 */
+    .btn-row .btn,
+    .btn-row button.btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 72px;
+        /* 버튼 폭 통일(원하면 조절) */
+        height: 44px;
+        /* 높이 통일 */
+        padding: 0 16px;
+        /* 좌우 여백 */
+
+        line-height: 1;
+        /* 글자 때문에 높이 달라지는 거 방지 */
+        font-size: 14px;
+        font-weight: 700;
+
+        box-sizing: border-box;
+    }
+
+    .btn-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 9px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: #00000033;
+        text-decoration: none;
+        cursor: pointer;
+        color: #000;
+    }
+
+    .btn:hover {
+        background: rgba(92, 92, 92, 0.2);
+    }
+
+    .btn.primary {
+        background: rgba(59, 130, 246, 0.85);
+        /* 파란색 */
+        border-color: rgba(59, 130, 246, 1);
+    }
+
+    .btn.danger {
+        background: rgba(239, 68, 68, 0.85);
+        /* 빨강 */
+        border-color: rgba(239, 68, 68, 1);
+        font-size: 16px;
+    }
+
+    .detail-star {
+        font-size: 20px;
+        color: #ffd54a;
+        background: rgba(0, 0, 0, 0.35);
+        border: none;
+        border-radius: 999px;
+        padding: 6px 10px;
+        cursor: pointer;
+    }
+
+    .detail-star:hover {
+        background: rgba(0, 0, 0, 0.55);
+    }
+</style>
 <script>
-    document.addEventListener("click", async (e) => {
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
 
+    document.addEventListener("click", async (e) => {
         if (e.target.classList.contains("star-btn")) {
             const id = e.target.dataset.id;
 
             const res = await fetch(`/ideas/${id}/toggle-star/`, {
                 method: "POST",
-                headers: { "X-CSRFToken": csrftoken }
+                headers: {
+                    "X-CSRFToken": csrftoken,
+                },
             });
 
             const data = await res.json();
             e.target.textContent = data.starred ? "★" : "☆";
         }
-
-        if (e.target.classList.contains("interest-btn")) {
-            const id = e.target.dataset.id;
-            const delta = e.target.dataset.delta;
-
-            const body = new URLSearchParams();
-            body.append("delta", delta);
-
-            const res = await fetch(`/ideas/${id}/interest/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrftoken,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: body.toString(),
-            });
-
-            const data = await res.json();
-            document.querySelector(`#interest-${id}`).textContent = data.interest;
-        }
-
     });
 </script>
+{% extends "base.html" %}
 
+{% block content %}
+<div class="detail-bg">
+    <div class="detail-wrap">
+        <h1 class="detail-title">Idea Detail</h1>
+        <p class="detail-sub">아이디어 세부정보를 확인하세요.</p>
+
+        <div class="detail-card">
+
+            <div class="detail-inner">
+                <!-- 왼쪽 이미지 -->
+                <div class="detail-left">
+                    {% if idea.image %}
+                    <img class="detail-img" src="{{ idea.image.url }}" alt="{{ idea.title }}">
+                    {% else %}
+                    <div class="detail-img placeholder">No Image</div>
+                    {% endif %}
+                </div>
+
+                <!-- 오른쪽 내용 -->
+                <div class="detail-right">
+                    <div class="title-row">
+                        <div class="title-row">
+                            <h2 class="idea-title">{{ idea.title }}</h2>
+
+                            <button class="star-btn detail-star" data-id="{{ idea.pk }}" aria-label="찜하기">
+                                {% if star.is_starred %}★{% else %}☆{% endif %}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="info-block">
+                        <div class="info-line">
+                            <span class="info-label">예상 개발 툴</span>
+                            <span class="info-value">
+                                <a class="link" href="{% url 'devtools:detail' idea.devtool.pk %}">
+                                    {{ idea.devtool.name }}
+                                </a>
+                            </span>
+                        </div>
+
+                        <div class="info-line">
+                            <span class="info-label">아이디어 관심도</span>
+                            <span class="info-value">{{ idea.interest }}</span>
+                        </div>
+
+                        <div class="info-line">
+                            <span class="info-label">설명</span>
+                            <span class="info-value">{{ idea.content }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 버튼 영역 -->
+            <div class="btn-row">
+                <form action="{% url 'ideas:delete' idea.pk %}" method="post">
+                    {% csrf_token %}
+                    <button class="btn danger" type="submit">삭제</button>
+                </form>
+
+                <a class="btn" href="{% url 'home' %}">목록</a>
+                <a class="btn primary" href="{% url 'ideas:update' idea.pk %}">수정</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
