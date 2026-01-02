@@ -4,7 +4,7 @@ from .models import DevTool
 class DevToolForm(forms.ModelForm):
     class Meta:
         model = DevTool
-        field = [
+        fields = [
             "name",
             "kind",
             "content",
