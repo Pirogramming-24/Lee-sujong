@@ -1,0 +1,116 @@
+<style>
+    /* 배경 */
+    .dev-bg {
+        min-height: 100vh;
+        background-color: #f4f4f4e6;
+        padding: 32px 16px;
+    }
+
+    .dev-wrap {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .dev-header {
+        text-align: center;
+        margin-bottom: 14px;
+    }
+
+    .dev-title {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 900;
+    }
+
+    .dev-sub {
+        margin: 6px 0 0;
+        font-size: 12px;
+    }
+
+    /* 테이블 느낌 */
+    .dev-table {
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+    }
+
+    .dev-row {
+        display: grid;
+        grid-template-columns: 140px 160px 1fr;
+        gap: 10px;
+        padding: 12px 10px;
+        border-bottom: 1px solid #000;
+    }
+
+    .dev-row:last-child {
+        border-bottom: none;
+    }
+
+    .dev-head {
+        font-weight: 800;
+    }
+
+    .col {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .dev-link {
+        text-decoration: none;
+        font-weight: 800;
+        color: #000;
+    }
+
+    .dev-link:hover {
+        text-decoration: underline;
+    }
+
+    .dev-empty {
+        padding: 18px 10px;
+        text-align: center;
+    }
+
+    /* 버튼 영역 */
+    .dev-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 14px;
+    }
+</style>
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dev-bg">
+    <div class="dev-wrap">
+
+        <div class="dev-header">
+            <h1 class="dev-title">DevTool List</h1>
+            <p class="dev-sub">개발툴 목록을 확인하고, 새로운 개발툴을 등록해보세요.</p>
+        </div>
+
+        <div class="dev-table">
+            <div class="dev-row dev-head">
+                <div class="col name">이름</div>
+                <div class="col kind">종류</div>
+                <div class="col content">설명</div>
+            </div>
+
+            {% for tool in devtools %}
+            <div class="dev-row">
+                <div class="col name">
+                    <a class="dev-link" href="{% url 'devtools:detail' tool.pk %}">
+                        {{ tool.name }}
+                    </a>
+                </div>
+                <div class="col kind">{{ tool.kind }}</div>
+                <div class="col content">{{ tool.content }}</div>
+            </div>
+            {% empty %}
+            <div class="dev-empty">등록된 개발툴이 없습니다.</div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
