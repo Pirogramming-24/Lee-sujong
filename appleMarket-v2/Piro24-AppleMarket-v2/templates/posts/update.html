@@ -1,19 +1,101 @@
-{% extends 'base.html' %}
-
-{% block head %}
+{% extends 'base.html' %} {% block head %}
 <title>post_detail</title>
 <style>
-    main {
-        height: 100vh;
-        padding: 40px;
-    }
+  main {
+    height: 100vh;
+    padding: 40px;
+  }
 </style>
-{% endblock %}
+{% endblock %} {% block content %}
+<form
+  action="{% url 'posts:update' post.id %}"
+  method="POST"
+  enctype="multipart/form-data"
+>
+  {% csrf_token %}
 
-{% block content %}
-<form action="{% url 'posts:update' post.pk %}" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary">수정 완료</button>
+  <h3>게시글 정보</h3>
+  {{ post_form.as_p }}
+  <p>
+    영양 성분 이미지:
+    <input type="file" id="nutritionImage" accept="image/*">
+    <div id="ocrStatus"></div>
+  </p>
+
+  {{ nutrition_form.as_p }}
+
+  <button class="btn btn-primary">수정 완료</button>
 </form>
+<script>
+  const fileInput = document.getElementById("nutritionImage"); // 영양성분표 업로드 input
+  const caloriesEl = document.getElementById("id_calories_kcal");
+  const carbsEl = document.getElementById("id_carbs_g");
+  const proteinEl = document.getElementById("id_protein_g");
+  const fatEl = document.getElementById("id_fat_g");
+
+  function getCsrfToken() {
+    const name = "csrftoken=";
+    const parts = document.cookie.split(";").map(v => v.trim());
+    for (const p of parts) if (p.startsWith(name)) return p.slice(name.length);
+    return "";
+  }
+
+  function setAnalyzingUI(on) {
+  const msg = on ? "분석 중..." : "";
+  const fields = [caloriesEl, carbsEl, proteinEl, fatEl].filter(Boolean);
+
+  fields.forEach(el => {
+    if (on) {
+      el.placeholder = msg;
+      el.value = "";
+      el.disabled = true;
+    } else {
+      el.placeholder = "";
+      el.disabled = false;
+    }
+  });
+}
+
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    setAnalyzingUI(true);
+
+    const fd = new FormData();
+    fd.append("nutrition_image", file);
+
+    try {
+      const res = await fetch("{% url 'posts:ocr_preview' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCsrfToken() },
+        body: fd
+      });
+
+      const data = await res.json();
+
+      // 실패하면 입력칸 비우고 수정 가능하게
+      if (!data.ok) {
+        setAnalyzingUI(false);
+        alert("OCR 실패: " + (data.error || "unknown"));
+        return;
+      }
+
+      const n = data.nutrition || {};
+
+      // ✅ 결과 채우기 (값이 없으면 비움)
+      if (caloriesEl) caloriesEl.value = (n.calories_kcal ?? "");
+      if (carbsEl) carbsEl.value = (n.carbs_g ?? "");
+      if (proteinEl) proteinEl.value = (n.protein_g ?? "");
+      if (fatEl) fatEl.value = (n.fat_g ?? "");
+
+      // ✅ 사용자가 수정 가능하게 풀기
+      [caloriesEl, carbsEl, proteinEl, fatEl].filter(Boolean).forEach(el => el.disabled = false);
+
+    } catch (e) {
+      setAnalyzingUI(false);
+      alert("네트워크 오류: " + e);
+    }
+  });
+</script>
 {% endblock %}

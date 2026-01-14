@@ -69,18 +69,39 @@ def detail(request, pk):
 
 def update(request, pk):
     post = Post.objects.get(id=pk)
+
+    # ✅ post에 연결된 NutritionInfo 가져오기 (없으면 새로 만들 준비)
+    nutrition = getattr(post, "nutrition", None)
+
     if request.method == 'GET':
-        form = PostForm(instance=post)
-        context = {
-            'form': form, 
-            'post': post
-        }
-        return render(request, 'posts/update.html', context=context)
-    else:
-        form = PostForm(request.POST, request.FILES, instance=post)
-        if form.is_valid():
-            form.save()
+        post_form = PostForm(instance=post)
+        nutrition_form = NutritionForm(instance=nutrition)
+
+        return render(request, 'posts/update.html', {
+            'post_form': post_form,
+            'nutrition_form': nutrition_form,
+            'post': post,
+        })
+
+    # POST
+    post_form = PostForm(request.POST, request.FILES, instance=post)
+    nutrition_form = NutritionForm(request.POST, instance=nutrition)
+
+    if post_form.is_valid() and nutrition_form.is_valid():
+        post_form.save()
+
+        n = nutrition_form.save(commit=False)
+        n.post = post
+        n.save()
+
         return redirect('posts:detail', pk=pk)
+
+    return render(request, 'posts/update.html', {
+        'post_form': post_form,
+        'nutrition_form': nutrition_form,
+        'post': post,
+    })
+
 
 def delete(request, pk):
     post = Post.objects.get(id=pk)
