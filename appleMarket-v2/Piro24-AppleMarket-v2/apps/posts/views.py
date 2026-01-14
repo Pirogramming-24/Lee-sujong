@@ -1,6 +1,7 @@
+import json
 from django.shortcuts import render, redirect
-from .models import Post
-from .forms import PostForm
+from .forms import PostForm, NutritionForm
+from .models import NutritionInfo
 
 # Create your views here.
 def main(request):
@@ -31,14 +32,29 @@ def main(request):
 
 def create(request):
     if request.method == 'GET':
-        form = PostForm()
-        context = { 'form': form }
-        return render(request, 'posts/create.html', context=context)
+        post_form = PostForm()
+        nutrition_form = NutritionForm()
+        return render(request, 'posts/create.html', {
+            'post_form': post_form,
+            'nutrition_form': nutrition_form,
+        })
     else:
-        form = PostForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-        return redirect('/')
+        post_form = PostForm(request.POST, request.FILES)
+        nutrition_form = NutritionForm(request.POST)
+
+        if post_form.is_valid() and nutrition_form.is_valid():
+            post = post_form.save()
+
+            nutrition = nutrition_form.save(commit=False)
+            nutrition.post = post
+            nutrition.save()
+
+            return redirect('/')
+
+        return render(request, 'posts/create.html', {
+            'post_form': post_form,
+            'nutrition_form': nutrition_form,
+        })
 
 def detail(request, pk):
     target_post = Post.objects.get(id = pk)
