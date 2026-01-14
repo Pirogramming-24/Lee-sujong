@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import render, redirect
 from .forms import PostForm, NutritionForm
-from .models import NutritionInfo
+from .models import NutritionInfo, Post
 
 # Create your views here.
 def main(request):

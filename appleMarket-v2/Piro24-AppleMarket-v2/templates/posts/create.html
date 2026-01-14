@@ -2,16 +2,86 @@
 {% block head %}
 <title>post_create</title>
 <style>
-    main {
-        height: 100vh;
-    }
+  main {
+    height: 100vh;
+  }
+
+  #ocrStatus {
+    margin-top: 8px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <form action="{% url 'posts:create' %}" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-success">등록하기</button>
+  {% csrf_token %}
+
+  <h3>게시글 정보</h3>
+  {{ post_form.as_p }}
+
+  <hr />
+  <h3>영양 성분</h3>
+
+  <p>
+    <input type="file" id="nutritionImage" accept="image/*">
+  <div id="ocrStatus"></div>
+  </p>
+
+  {{ nutrition_form.as_p }}
+
+  <button class="btn btn-success">등록하기</button>
 </form>
+
+<script>
+  const input = document.getElementById("nutritionImage");
+  const statusEl = document.getElementById("ocrStatus");
+
+  // NutritionForm 필드 id (보통 id_필드명)
+  const caloriesEl = document.getElementById("id_calories_kcal");
+  const carbsEl = document.getElementById("id_carbs_g");
+  const proteinEl = document.getElementById("id_protein_g");
+  const fatEl = document.getElementById("id_fat_g");
+
+  function getCsrfToken() {
+    const name = "csrftoken=";
+    const parts = document.cookie.split(";").map(v => v.trim());
+    for (const p of parts) if (p.startsWith(name)) return p.slice(name.length);
+    return "";
+  }
+
+  input.addEventListener("change", async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    statusEl.textContent = "분석 중…";
+
+    const fd = new FormData();
+    fd.append("nutrition_image", file);
+
+    try {
+      const res = await fetch("{% url 'posts:ocr_preview' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCsrfToken() },
+        body: fd
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        statusEl.textContent = "분석 실패: " + (data.error || "unknown");
+        return;
+      }
+
+      const n = data.nutrition || {};
+
+      if (caloriesEl && n.calories_kcal != null) caloriesEl.value = n.calories_kcal;
+      if (carbsEl && n.carbs_g != null) carbsEl.value = n.carbs_g;
+      if (proteinEl && n.protein_g != null) proteinEl.value = n.protein_g;
+      if (fatEl && n.fat_g != null) fatEl.value = n.fat_g;
+
+    } catch (e) {
+      statusEl.textContent = "오류: " + e;
+    }
+  });
+</script>
 {% endblock %}
