@@ -2,6 +2,12 @@ import json
 from django.shortcuts import render, redirect
 from .forms import PostForm, NutritionForm
 from .models import NutritionInfo, Post
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+
+from .services.ocr_service import run_ocr
+from .services.rules import extract_nutrition
 
 # Create your views here.
 def main(request):
@@ -80,3 +86,20 @@ def delete(request, pk):
     post = Post.objects.get(id=pk)
     post.delete()
     return redirect('/')
+
+@require_POST
+@csrf_protect
+def ocr_preview(request):
+    if "nutrition_image" not in request.FILES:
+        return JsonResponse({"ok": False, "error": "nutrition_image가 필요합니다."}, status=400)
+
+    f = request.FILES["nutrition_image"]
+    file_bytes = f.read()
+
+    try:
+        text = run_ocr(file_bytes)
+        nutrition = extract_nutrition(text)
+        return JsonResponse({"ok": True, "nutrition": nutrition})
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+    
