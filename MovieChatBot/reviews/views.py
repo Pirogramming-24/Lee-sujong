@@ -122,7 +122,16 @@ def review_list(request):
     }
 
     order = sort_map.get(sort, "-id")
-    reviews = Review.objects.all().order_by(order)
+    source = request.GET.get("source")
+
+    qs = Review.objects.all()
+
+    if source == "tmdb":
+        qs = qs.filter(is_from_tmdb=True)
+    elif source == "user":
+        qs = qs.filter(is_from_tmdb=False)
+
+    reviews = qs.order_by(order)
 
     return render(request, "reviews/list.html", {"reviews": reviews, "sort": sort})
 

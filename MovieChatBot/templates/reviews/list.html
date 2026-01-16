@@ -13,6 +13,13 @@
     <form method="post" action="{% url 'reviews:tmdb_sync' %}">
       {% csrf_token %}
       <button type="submit">TMDB 인기 영화 20개 불러오기</button>
+      <a href="{% url 'reviews:list' %}?sort={{ sort }}">전체 영화</a>
+      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=tmdb"
+        >TMDB 영화</a
+      >
+      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=user"
+        >직접 등록 영화</a
+      >
     </form>
 
     <br />
