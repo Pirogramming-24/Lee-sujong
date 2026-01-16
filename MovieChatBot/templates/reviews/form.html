@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Movie reviews</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <a href="{% url 'reviews:list' %}">my Movie reviews</a>
 
     {% if mode == "create" %}
@@ -16,12 +15,9 @@
     <h1>리뷰 수정</h1>
     {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">저장</button>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">저장</button>
     </form>
-
-</body>
-
+  </body>
 </html>

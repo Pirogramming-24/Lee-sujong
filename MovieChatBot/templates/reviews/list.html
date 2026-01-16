@@ -13,37 +13,84 @@
     <form method="post" action="{% url 'reviews:tmdb_sync' %}">
       {% csrf_token %}
       <button type="submit">TMDB 인기 영화 20개 불러오기</button>
-      <a href="{% url 'reviews:list' %}?sort={{ sort }}">전체 영화</a>
-      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=tmdb"
-        >TMDB 영화</a
-      >
-      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=user"
-        >직접 등록 영화</a
-      >
     </form>
+
+    <br />
+
+    <!-- 필터 -->
+    <div>
+      <strong>필터:</strong>
+      <a href="{% url 'reviews:list' %}?sort={{ sort }}">전체</a> |
+      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=tmdb">TMDB</a> |
+      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=user"
+        >직접 등록</a
+      >
+    </div>
 
     <br />
 
     <a href="{% url 'reviews:create' %}">리뷰 작성</a>
 
+    <!-- 정렬 -->
     <div>
       <br />
       <strong>정렬:</strong>
-      <a href="{% url 'reviews:list' %}?sort=year_desc">최신순</a> |
-      <a href="{% url 'reviews:list' %}?sort=year_asc">오래된순</a> |
-      <a href="{% url 'reviews:list' %}?sort=rating_desc">별점 높은순</a> |
-      <a href="{% url 'reviews:list' %}?sort=rating_asc">별점 낮은순</a> |
-      <a href="{% url 'reviews:list' %}?sort=title_asc">제목순</a> |
-      <a href="{% url 'reviews:list' %}?sort=title_desc">제목 역순</a>
+      <a
+        href="{% url 'reviews:list' %}?sort=year_desc{% if source %}&source={{ source }}{% endif %}"
+        >최신순</a
+      >
+      |
+      <a
+        href="{% url 'reviews:list' %}?sort=year_asc{% if source %}&source={{ source }}{% endif %}"
+        >오래된순</a
+      >
+      |
+      <a
+        href="{% url 'reviews:list' %}?sort=rating_desc{% if source %}&source={{ source }}{% endif %}"
+        >별점 높은순</a
+      >
+      |
+      <a
+        href="{% url 'reviews:list' %}?sort=rating_asc{% if source %}&source={{ source }}{% endif %}"
+        >별점 낮은순</a
+      >
+      |
+      <a
+        href="{% url 'reviews:list' %}?sort=title_asc{% if source %}&source={{ source }}{% endif %}"
+        >제목순</a
+      >
+      |
+      <a
+        href="{% url 'reviews:list' %}?sort=title_desc{% if source %}&source={{ source }}{% endif %}"
+        >제목 역순</a
+      >
     </div>
 
     <ul>
       {% for r in reviews %}
-      <li>
-        {% if r.is_from_tmdb %} {% else %} {% endif %}
+      <li style="display: flex; gap: 12px; align-items: flex-start">
+        <!-- 포스터 -->
+        {% if r.user_poster_image %}
+        <img
+          src="{{ r.user_poster_image.url }}"
+          alt="{{ r.title }}"
+          width="80"
+        />
+        {% elif r.tmdb_poster_url %}
+        <img src="{{ r.tmdb_poster_url }}" alt="{{ r.title }}" width="80" />
+        {% endif %}
 
-        <a href="{% url 'reviews:detail' r.pk %}"> {{ r.title }} </a>
-        ({{ r.release_year }}) / {{ r.genre }} / ★{{ r.rating }}
+        <div>
+          <!-- 출처 표시 -->
+          {% if r.is_from_tmdb %}
+          <strong>[TMDB]</strong>
+          {% else %}
+          <strong>[USER]</strong>
+          {% endif %}
+
+          <a href="{% url 'reviews:detail' r.pk %}"> {{ r.title }} </a>
+          ({{ r.release_year }}) / {{ r.genre }} / ★{{ r.rating }}
+        </div>
       </li>
       {% empty %}
       <li>아직 리뷰가 없습니다.</li>

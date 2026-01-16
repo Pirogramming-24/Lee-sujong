@@ -76,6 +76,12 @@ def tmdb_sync_popular(request):
         detail = _tmdb_get(f"/movie/{movie_id}")
         credits = _tmdb_get(f"/movie/{movie_id}/credits")
 
+        poster_path = detail.get("poster_path")
+        tmdb_poster_url = (
+            f"{settings.TMDB_IMG_BASE}/w500{poster_path}"
+            if poster_path else ""
+        )
+
         # 감독
         director = "Unknown"
         for c in credits.get("crew", []):
@@ -103,6 +109,8 @@ def tmdb_sync_popular(request):
                 "actors": actors,
                 "runtime": detail.get("runtime") or 0,
                 "content": detail.get("overview") or "",
+                "tmdb_poster_url": tmdb_poster_url,
+                "user_poster_image": None,
             }
         )
 
@@ -111,6 +119,7 @@ def tmdb_sync_popular(request):
 
 def review_list(request):
     sort = request.GET.get("sort", "latest")
+    source = request.GET.get("source")
 
     sort_map = {
         "title_asc": "title",
@@ -122,7 +131,6 @@ def review_list(request):
     }
 
     order = sort_map.get(sort, "-id")
-    source = request.GET.get("source")
 
     qs = Review.objects.all()
 
@@ -141,7 +149,7 @@ def review_detail(request, pk):
 
 def review_create(request):
     if request.method == "POST":
-        form = ReviewForm(request.POST)
+        form = ReviewForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect("reviews:list")
@@ -152,7 +160,7 @@ def review_create(request):
 def review_update(request, pk):
     review = get_object_or_404(Review, pk=pk)
     if request.method == "POST":
-        form = ReviewForm(request.POST, instance=review)
+        form = ReviewForm(request.POST, request.FILES, instance=review)
         if form.is_valid():
             form.save()
             return redirect("reviews:detail", pk=review.pk)

@@ -45,6 +45,8 @@ class Review(models.Model):
     actors = models.CharField(max_length=200)
     runtime = models.IntegerField()
     content = models.TextField()
+    tmdb_poster_url = models.URLField(blank=True)                 
+    user_poster_image = models.ImageField(upload_to="posters/", blank=True, null=True)  
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

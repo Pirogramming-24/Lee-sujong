@@ -1,14 +1,37 @@
 <!DOCTYPE html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Movie reviews</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <a href="{% url 'reviews:list' %}">my Movie reviews</a>
+
+    <div style="margin: 12px 0">
+      {% if review.user_poster_image %}
+      <img
+        src="{{ review.user_poster_image.url }}"
+        alt="{{ review.title }}"
+        width="200"
+      />
+      {% elif review.tmdb_poster_url %}
+      <img
+        src="{{ review.tmdb_poster_url }}"
+        alt="{{ review.title }}"
+        width="200"
+      />
+      {% endif %}
+    </div>
+
+    <div>
+      {% if review.is_from_tmdb %}
+      <strong>[TMDB]</strong>
+      {% else %}
+      <strong>[USER]</strong>
+      {% endif %}
+    </div>
 
     <h2>제목: {{ review.title }}</h2>
 
@@ -19,17 +42,19 @@
     <p>별점: ★{{ review.rating }}</p>
     <p>러닝타임: {{ review.runtime_hm }}</p>
 
-    <hr>
+    <hr />
     <h3>리뷰</h3>
     <p>{{ review.content }}</p>
 
     <a href="{% url 'reviews:update' review.pk %}">수정</a>
 
-    <form action="{% url 'reviews:delete' review.pk %}" method="post" style="display:inline;">
-        {% csrf_token %}
-        <button type="submit">삭제</button>
+    <form
+      action="{% url 'reviews:delete' review.pk %}"
+      method="post"
+      style="display: inline"
+    >
+      {% csrf_token %}
+      <button type="submit">삭제</button>
     </form>
-
-</body>
-
+  </body>
 </html>

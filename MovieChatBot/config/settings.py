@@ -117,6 +117,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 TMDB_READ_TOKEN = os.environ.get("TMDB_READ_TOKEN")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
