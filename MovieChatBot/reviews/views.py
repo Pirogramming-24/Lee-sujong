@@ -1,13 +1,42 @@
 from decimal import Decimal
-import requests
-
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.db.models import Q
-
+from django.http import JsonResponse
+from reviews.rag.retriever import retrieve_movies
+from reviews.rag.prompt import build_prompt
+from openai import OpenAI
 from .models import Review
 from .forms import ReviewForm
+import requests
+import os
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+def chat_page(request):
+    return render(request, "reviews/chat.html")
+
+def movie_chatbot(request):
+    q = request.GET.get("q")
+    if not q:
+        return JsonResponse({"error": "query required"}, status=400)
+
+    contexts = retrieve_movies(q)
+    prompt = build_prompt(q, contexts)
+
+    res = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {"role": "system", "content": "너는 영화 추천 전문가다."},
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+    return JsonResponse({
+        "answer": res.choices[0].message.content,
+        "contexts": contexts,
+    })
 
 def _map_tmdb_genre_to_choice(genres):
     """

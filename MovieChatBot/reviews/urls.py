@@ -12,6 +12,8 @@ urlpatterns = [
     path("<int:pk>/update/", views.review_update, name="update"),
     path("<int:pk>/delete/", views.review_delete, name="delete"),
     path("tmdb/sync/", views.tmdb_sync_popular, name="tmdb_sync"),
+    path("chat/", views.chat_page, name="chat_page"),
+    path("chatbot/", views.movie_chatbot, name="movie_chatbot"),
 ]
 
 if settings.DEBUG:
