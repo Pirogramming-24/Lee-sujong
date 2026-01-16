@@ -1,8 +1,46 @@
+from decimal import Decimal
 import requests
+
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+
 from .models import Review
 from .forms import ReviewForm
+
+def _map_tmdb_genre_to_choice(genres):
+    """
+    TMDB genres(list[dict]) -> Review.genre (GENRE_CHOICES 중 하나)
+    """
+    if not genres:
+        return "드라마"  # 기본값
+
+    name = genres[0].get("name", "")
+
+    # TMDB 한글 장르 → 네 choices에 맞추기
+    if "액션" in name:
+        return "액션"
+    if "코미" in name:
+        return "코미디"
+    if "드라마" in name:
+        return "드라마"
+    if "로맨" in name or "멜로" in name:
+        return "로맨스"
+    if "스릴" in name:
+        return "스릴러"
+    if "공포" in name:
+        return "공포"
+    if "SF" in name or "과학" in name:
+        return "SF"
+    if "판타" in name:
+        return "판타지"
+    if "애니" in name:
+        return "애니메이션"
+    if "다큐" in name:
+        return "다큐멘터리"
+
+    # 매핑 안 되면 안전하게 드라마
+    return "드라마"
 
 def _tmdb_get(path: str, params=None):
     params = params or {}
@@ -18,40 +56,63 @@ def _tmdb_get(path: str, params=None):
     r = requests.get(url, params=params, headers=headers, timeout=10)
 
     if r.status_code >= 400:
-        # 토큰이 실제로 세팅됐는지까지 같이 보여주기(토큰 값은 노출 X)
         raise RuntimeError(f"TMDB {r.status_code} / token_set={bool(token)} / body={r.text}")
 
     return r.json()
 
-def _get_genre_map_ko() -> dict[int, str]:
-    # { 28: "액션", 35: "코미디", ... }
-    data = _tmdb_get("/genre/movie/list", params={"language": "ko-KR"})
-    return {g["id"]: g["name"] for g in data.get("genres", [])}
 
-def sort_tmdb_movies(movies, sort):
-    if sort == "title_asc":
-        return sorted(movies, key=lambda x: x["title"] or "")
-    if sort == "title_desc":
-        return sorted(movies, key=lambda x: x["title"] or "", reverse=True)
+@require_POST
+def tmdb_sync_popular(request):
+    """
+    TMDB 인기 영화 20개를 가져와 Review 테이블에 저장 (중복은 tmdb_id로 방지)
+    """
+    popular = _tmdb_get("/movie/popular", params={"page": 1})
 
-    if sort == "year_asc":
-        return sorted(movies, key=lambda x: x["release_year"] or 0)
-    if sort == "year_desc":
-        return sorted(movies, key=lambda x: x["release_year"] or 0, reverse=True)
+    for item in popular.get("results", []):
+        movie_id = item.get("id")
+        if not movie_id:
+            continue
 
-    if sort == "rating_asc":
-        return sorted(movies, key=lambda x: x["rating"] or 0)
-    if sort == "rating_desc":
-        return sorted(movies, key=lambda x: x["rating"] or 0, reverse=True)
+        detail = _tmdb_get(f"/movie/{movie_id}")
+        credits = _tmdb_get(f"/movie/{movie_id}/credits")
 
-    # latest / oldest 등은 TMDB 기본 순서 유지
-    return movies
+        # 감독
+        director = "Unknown"
+        for c in credits.get("crew", []):
+            if c.get("job") == "Director":
+                director = c.get("name") or "Unknown"
+                break
+
+        # 배우 5명
+        cast_names = [c.get("name") for c in credits.get("cast", [])[:5] if c.get("name")]
+        actors = ", ".join(cast_names) if cast_names else "Unknown"
+
+        # 개봉연도
+        release_date = detail.get("release_date")
+        release_year = int(release_date[:4]) if release_date else 0
+
+        Review.objects.update_or_create(
+            tmdb_id=movie_id,
+            defaults={
+                "is_from_tmdb": True,
+                "title": detail.get("title", "") or "",
+                "release_year": release_year,
+                "genre": _map_tmdb_genre_to_choice(detail.get("genres")),
+                "rating": Decimal("3.0"),
+                "director": director,
+                "actors": actors,
+                "runtime": detail.get("runtime") or 0,
+                "content": detail.get("overview") or "",
+            }
+        )
+
+    return redirect("reviews:list")
+
 
 def review_list(request):
     sort = request.GET.get("sort", "latest")
+
     sort_map = {
-        "latest": "-id",
-        "oldest": "id",
         "title_asc": "title",
         "title_desc": "-title",
         "year_asc": "release_year",
@@ -59,60 +120,11 @@ def review_list(request):
         "rating_asc": "rating",
         "rating_desc": "-rating",
     }
+
     order = sort_map.get(sort, "-id")
     reviews = Review.objects.all().order_by(order)
 
-    pages = int(request.GET.get("pages", 1))
-
-    tmdb_movies = []
-    tmdb_error = None
-
-    try:
-        genre_map = _get_genre_map_ko()
-
-        for page in range(1, pages + 1):
-            popular = _tmdb_get("/movie/popular", params={"page": page, "language": "ko-KR"})
-
-            for item in popular.get("results", []):
-                release_date = item.get("release_date") or ""
-                release_year = int(release_date.split("-")[0]) if release_date else None
-
-                genre_ids = item.get("genre_ids") or []
-                # 첫 장르만 표시 (원하면 여러 개 join 가능)
-                genre_ko = genre_map.get(genre_ids[0], "기타") if genre_ids else "기타"
-
-                vote_avg = float(item.get("vote_average") or 0.0)  # 0~10
-                rating_5 = round((vote_avg / 2) * 2) / 2           # 0.5 step, 0~5
-
-                poster_path = item.get("poster_path")
-                poster_url = (
-                    f"{settings.TMDB_IMG_BASE}/w200{poster_path}"
-                    if poster_path else ""
-                )
-
-                tmdb_movies.append({
-                    "tmdb_id": item.get("id"),
-                    "title": item.get("title") or "",
-                    "release_year": release_year,
-                    "genre": genre_ko,
-                    "rating": rating_5,
-                    "poster_url": poster_url,
-                })
-
-        tmdb_movies = tmdb_movies[: pages * 20]
-
-        tmdb_movies = sort_tmdb_movies(tmdb_movies, sort)
-
-    except Exception as e:
-        tmdb_error = str(e)
-
-    return render(request, "reviews/list.html", {
-        "reviews": reviews,
-        "sort": sort,
-        "tmdb_movies": tmdb_movies,
-        "tmdb_pages": pages,
-        "tmdb_error": tmdb_error,
-    })
+    return render(request, "reviews/list.html", {"reviews": reviews, "sort": sort})
 
 def review_detail(request, pk):
     review = get_object_or_404(Review, pk=pk)
@@ -122,9 +134,8 @@ def review_create(request):
     if request.method == "POST":
         form = ReviewForm(request.POST)
         if form.is_valid():
-            if form.is_valid():
-                form.save()
-                return redirect("reviews:list")
+            form.save()
+            return redirect("reviews:list")
     else:
         form = ReviewForm()
     return render(request, "reviews/form.html", {"form": form, "mode": "create"})
@@ -132,17 +143,18 @@ def review_create(request):
 def review_update(request, pk):
     review = get_object_or_404(Review, pk=pk)
     if request.method == "POST":
-        form = ReviewForm(request.POST, instance = review)
+        form = ReviewForm(request.POST, instance=review)
         if form.is_valid():
             form.save()
-            return render(request, "reviews/detail.html", {"review": review})
+            return redirect("reviews:detail", pk=review.pk)
     else:
-        form = ReviewForm(instance = review)
-    return render(request, "reviews/form.html", {"form": form, "mode": "create"})
+        form = ReviewForm(instance=review)
+
+    return render(request, "reviews/form.html", {"form": form, "mode": "update"})
+
 
 def review_delete(request, pk):
     review = get_object_or_404(Review, pk=pk)
     if request.method == "POST":
         review.delete()
     return redirect("reviews:list")
-

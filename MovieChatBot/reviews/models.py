@@ -28,6 +28,9 @@ GENRE_CHOICES = [
 ]
 
 class Review(models.Model):
+    tmdb_id = models.PositiveIntegerField(null=True, blank=True, unique=True)
+    is_from_tmdb = models.BooleanField(default=False)
+
     title = models.CharField(max_length=100)
     release_year = models.IntegerField()
     genre = models.CharField(max_length=20, choices=GENRE_CHOICES)
