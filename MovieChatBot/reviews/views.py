@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 from reviews.rag.retriever import retrieve_movies
 from reviews.rag.prompt import build_prompt
 from openai import OpenAI
@@ -14,8 +15,6 @@ import requests
 import os
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-from django.core.paginator import Paginator
 
 def review_list(request):
     sort = request.GET.get("sort", "latest")
@@ -50,14 +49,14 @@ def review_list(request):
 
     qs = qs.order_by(order)
 
-    # ✅ 페이지네이션: 한 페이지 6개
+    # 페이지네이션
     paginator = Paginator(qs, 6)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
     return render(request, "reviews/list.html", {
-        "reviews": page_obj,     # 템플릿 for문 그대로 사용 가능
-        "page_obj": page_obj,    # 페이지 UI용
+        "reviews": page_obj,     
+        "page_obj": page_obj,    
         "sort": sort,
         "source": source,
         "search_txt": search_txt,
@@ -93,11 +92,10 @@ def _map_tmdb_genre_to_choice(genres):
     TMDB genres(list[dict]) -> Review.genre (GENRE_CHOICES 중 하나)
     """
     if not genres:
-        return "드라마"  # 기본값
+        return "드라마" 
 
     name = genres[0].get("name", "")
 
-    # TMDB 한글 장르 → 네 choices에 맞추기
     if "액션" in name:
         return "액션"
     if "코미" in name:
@@ -143,9 +141,6 @@ def _tmdb_get(path: str, params=None):
 
 @require_POST
 def tmdb_sync_popular(request):
-    """
-    TMDB 인기 영화 20개를 가져와 Review 테이블에 저장 (중복은 tmdb_id로 방지)
-    """
     popular = _tmdb_get("/movie/popular", params={"page": 1})
 
     for item in popular.get("results", []):

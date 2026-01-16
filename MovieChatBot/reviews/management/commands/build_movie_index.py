@@ -23,9 +23,9 @@ class Command(BaseCommand):
                 "actors": r.actors,
                 "genre": r.genre,
                 "release_year": r.release_year,
-                "rating": str(r.rating),  # Decimal → JSON 안전하게 str
+                "rating": str(r.rating),  
                 "is_from_tmdb": r.is_from_tmdb,
-                "doc": doc,  # ✅ RAG 컨텍스트로 그대로 쓰려고 저장
+                "doc": doc,  
             })
 
         save_index(texts, metas)
