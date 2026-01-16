@@ -4,6 +4,7 @@ import requests
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from django.db.models import Q
 
 from .models import Review
 from .forms import ReviewForm
@@ -76,6 +77,7 @@ def tmdb_sync_popular(request):
         detail = _tmdb_get(f"/movie/{movie_id}")
         credits = _tmdb_get(f"/movie/{movie_id}/credits")
 
+        # 이미지 경로 설정
         poster_path = detail.get("poster_path")
         tmdb_poster_url = (
             f"{settings.TMDB_IMG_BASE}/w500{poster_path}"
@@ -120,6 +122,7 @@ def tmdb_sync_popular(request):
 def review_list(request):
     sort = request.GET.get("sort", "latest")
     source = request.GET.get("source")
+    search_txt = request.GET.get('search_txt')
 
     sort_map = {
         "title_asc": "title",
@@ -133,6 +136,12 @@ def review_list(request):
     order = sort_map.get(sort, "-id")
 
     qs = Review.objects.all()
+    if search_txt:
+        qs = qs.filter(
+            Q(title__icontains=search_txt) |
+            Q(director__icontains=search_txt) |
+            Q(actors__icontains=search_txt))  # 제목, 감독, 배우로 검색
+    
 
     if source == "tmdb":
         qs = qs.filter(is_from_tmdb=True)

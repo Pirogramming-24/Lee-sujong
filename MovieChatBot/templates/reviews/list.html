@@ -15,6 +15,18 @@
       <button type="submit">TMDB 인기 영화 20개 불러오기</button>
     </form>
 
+    <div class="search-box">
+      <form action="/">
+        <input
+          type="input"
+          name="search_txt"
+          placeholder="검색어를 입력하세요"
+          value="{{ search_txt|default:'' }}"
+        />
+        <input type="submit" value="검색" />
+      </form>
+    </div>
+
     <br />
 
     <!-- 필터 -->
