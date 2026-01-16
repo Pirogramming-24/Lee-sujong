@@ -1,60 +1,93 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Movie reviews</title>
+    <title>{{ review.title }} | Movie Detail</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
   </head>
 
   <body>
-    <a href="{% url 'reviews:list' %}">my Movie reviews</a>
+    <main class="container">
+      <!-- 상단 네비 -->
+      <div style="margin-bottom: 16px">
+        <a class="badge" href="{% url 'reviews:list' %}">← 리스트로</a>
+        <a class="badge" href="{% url 'reviews:chat_page' %}">챗봇</a>
+      </div>
 
-    <div style="margin: 12px 0">
-      {% if review.user_poster_image %}
-      <img
-        src="{{ review.user_poster_image.url }}"
-        alt="{{ review.title }}"
-        width="200"
-      />
-      {% elif review.tmdb_poster_url %}
-      <img
-        src="{{ review.tmdb_poster_url }}"
-        alt="{{ review.title }}"
-        width="200"
-      />
-      {% endif %}
-    </div>
+      <!-- 디테일 카드 -->
+      <div class="card detail-card">
+        <!-- 포스터 -->
+        <div>
+          {% if review.user_poster_image %}
+          <img
+            src="{{ review.user_poster_image.url }}"
+            alt="{{ review.title }}"
+          />
+          {% elif review.tmdb_poster_url %}
+          <img src="{{ review.tmdb_poster_url }}" alt="{{ review.title }}" />
+          {% else %}
+          <div
+            style="
+              width: 320px;
+              height: 480px;
+              background: #eee;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 12px;
+              color: #777;
+            "
+          >
+            no image
+          </div>
+          {% endif %}
+        </div>
 
-    <div>
-      {% if review.is_from_tmdb %}
-      <strong>[TMDB]</strong>
-      {% else %}
-      <strong>[USER]</strong>
-      {% endif %}
-    </div>
+        <!-- 정보 -->
+        <div class="detail-info">
+          <!-- 출처 -->
+          <div style="margin-bottom: 10px">
+            {% if review.is_from_tmdb %}
+            <span class="badge">TMDB</span>
+            {% else %}
+            <span class="badge">USER</span>
+            {% endif %}
+          </div>
 
-    <h2>제목: {{ review.title }}</h2>
+          <h2 style="margin-top: 0">{{ review.title }}</h2>
 
-    <p>감독: {{ review.director }}</p>
-    <p>주연: {{ review.actors }}</p>
-    <p>개봉년도: {{ review.release_year }}</p>
-    <p>장르: {{ review.genre }}</p>
-    <p>별점: ★{{ review.rating }}</p>
-    <p>러닝타임: {{ review.runtime_hm }}</p>
+          <p><strong>감독</strong> · {{ review.director }}</p>
+          <p><strong>주연</strong> · {{ review.actors }}</p>
+          <p><strong>개봉년도</strong> · {{ review.release_year }}</p>
+          <p><strong>장르</strong> · {{ review.genre }}</p>
+          <p><strong>별점</strong> · ★{{ review.rating }}</p>
+          <p><strong>러닝타임</strong> · {{ review.runtime_hm }}</p>
 
-    <hr />
-    <h3>리뷰</h3>
-    <p>{{ review.content }}</p>
+          <!-- 액션 -->
+          <div style="margin-top: 20px">
+            <a class="badge" href="{% url 'reviews:update' review.pk %}"
+              >수정</a
+            >
 
-    <a href="{% url 'reviews:update' review.pk %}">수정</a>
+            <form
+              action="{% url 'reviews:delete' review.pk %}"
+              method="post"
+              style="display: inline"
+            >
+              {% csrf_token %}
+              <button type="submit">삭제</button>
+            </form>
+          </div>
+        </div>
+      </div>
 
-    <form
-      action="{% url 'reviews:delete' review.pk %}"
-      method="post"
-      style="display: inline"
-    >
-      {% csrf_token %}
-      <button type="submit">삭제</button>
-    </form>
+      <!-- 리뷰 본문 -->
+      <div class="card" style="margin-top: 24px">
+        <h3 style="margin-top: 0">리뷰</h3>
+        <p style="line-height: 1.6">{{ review.content }}</p>
+      </div>
+    </main>
   </body>
 </html>

@@ -1,66 +1,37 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Movie Chatbot</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        max-width: 720px;
-        margin: 24px auto;
-        padding: 0 12px;
-      }
-      #log {
-        border: 1px solid #ddd;
-        padding: 12px;
-        min-height: 320px;
-        border-radius: 8px;
-      }
-      .msg {
-        margin: 10px 0;
-        white-space: pre-wrap;
-      }
-      .me {
-        font-weight: 700;
-      }
-      .bot {
-      }
-      form {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-      }
-      input {
-        flex: 1;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-      }
-      button {
-        padding: 10px 14px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        background: #f7f7f7;
-        cursor: pointer;
-      }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
   </head>
   <body>
-    <a href="{% url 'reviews:list' %}">← 리스트로</a>
-    <h1>🎬 Movie Chatbot</h1>
+    <main class="container chat-shell">
+      <div class="topbar">
+        <div class="nav-links">
+          <a class="badge" href="{% url 'reviews:list' %}">← 리스트로</a>
+        </div>
+      </div>
 
-    <div id="log"></div>
+      <h1>🎬 Movie Chatbot</h1>
+      <p class="movie-sub">
+        예) “김성훈 감독 영화 추천해줘”, “로맨스 중에 평점 높은 거”
+      </p>
 
-    <form id="chatForm">
-      <input
-        id="q"
-        type="text"
-        placeholder="예) 놀란 감독 영화 추천해줘"
-        autocomplete="off"
-      />
-      <button type="submit">전송</button>
-    </form>
+      <div id="log"></div>
+
+      <form id="chatForm">
+        <input
+          id="q"
+          type="text"
+          placeholder="질문을 입력하세요"
+          autocomplete="off"
+        />
+        <button type="submit">전송</button>
+      </form>
+    </main>
 
     <script>
       const log = document.getElementById("log");
@@ -68,10 +39,20 @@
       const input = document.getElementById("q");
 
       function addMsg(who, text) {
-        const div = document.createElement("div");
-        div.className = "msg " + (who === "me" ? "me" : "bot");
-        div.textContent = (who === "me" ? "나: " : "봇: ") + text;
-        log.appendChild(div);
+        const row = document.createElement("div");
+        row.className = "msg " + (who === "me" ? "me" : "bot");
+
+        const whoEl = document.createElement("div");
+        whoEl.className = "who";
+        whoEl.textContent = who === "me" ? "나" : "봇";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+
+        row.appendChild(whoEl);
+        row.appendChild(bubble);
+        log.appendChild(row);
         log.scrollTop = log.scrollHeight;
       }
 
@@ -102,6 +83,9 @@
           input.focus();
         }
       });
+
+      // 첫 메시지
+      addMsg("bot", "안녕하세요! 영화 추천/정보 도와드릴게요 🙂");
     </script>
   </body>
 </html>

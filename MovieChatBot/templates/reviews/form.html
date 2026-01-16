@@ -1,23 +1,35 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Movie reviews</title>
+    <title>Review Form</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
   </head>
-
   <body>
-    <a href="{% url 'reviews:list' %}">my Movie reviews</a>
+    <main class="container form-card">
+      <div class="topbar">
+        <div class="nav-links">
+          <a class="badge" href="{% url 'reviews:list' %}">← 리스트로</a>
+        </div>
+      </div>
 
-    {% if mode == "create" %}
-    <h1>리뷰 작성</h1>
-    {% else %}
-    <h1>리뷰 수정</h1>
-    {% endif %}
+      {% if mode == "create" %}
+      <h1>리뷰 작성</h1>
+      {% else %}
+      <h1>리뷰 수정</h1>
+      {% endif %}
 
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %} {{ form.as_p }}
-      <button type="submit">저장</button>
-    </form>
+      <div class="card">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %} {{ form.as_p }}
+          <div class="actions">
+            <button type="submit">저장</button>
+            <a class="badge" href="{% url 'reviews:list' %}">취소</a>
+          </div>
+        </form>
+      </div>
+    </main>
   </body>
 </html>

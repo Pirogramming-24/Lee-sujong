@@ -3,6 +3,7 @@ from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.db.models import Q
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from reviews.rag.retriever import retrieve_movies
 from reviews.rag.prompt import build_prompt
@@ -13,6 +14,55 @@ import requests
 import os
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+from django.core.paginator import Paginator
+
+def review_list(request):
+    sort = request.GET.get("sort", "latest")
+    source = request.GET.get("source")
+    search_txt = request.GET.get("search_txt")
+
+    sort_map = {
+        "latest": "-id",
+        "oldest": "id",
+        "title_asc": "title",
+        "title_desc": "-title",
+        "year_asc": "release_year",
+        "year_desc": "-release_year",
+        "rating_asc": "rating",
+        "rating_desc": "-rating",
+    }
+    order = sort_map.get(sort, "-id")
+
+    qs = Review.objects.all()
+
+    if search_txt:
+        qs = qs.filter(
+            Q(title__icontains=search_txt) |
+            Q(director__icontains=search_txt) |
+            Q(actors__icontains=search_txt)
+        )
+
+    if source == "tmdb":
+        qs = qs.filter(is_from_tmdb=True)
+    elif source == "user":
+        qs = qs.filter(is_from_tmdb=False)
+
+    qs = qs.order_by(order)
+
+    # ✅ 페이지네이션: 한 페이지 6개
+    paginator = Paginator(qs, 6)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "reviews/list.html", {
+        "reviews": page_obj,     # 템플릿 for문 그대로 사용 가능
+        "page_obj": page_obj,    # 페이지 UI용
+        "sort": sort,
+        "source": source,
+        "search_txt": search_txt,
+    })
+
 
 def chat_page(request):
     return render(request, "reviews/chat.html")
@@ -146,40 +196,6 @@ def tmdb_sync_popular(request):
         )
 
     return redirect("reviews:list")
-
-
-def review_list(request):
-    sort = request.GET.get("sort", "latest")
-    source = request.GET.get("source")
-    search_txt = request.GET.get('search_txt')
-
-    sort_map = {
-        "title_asc": "title",
-        "title_desc": "-title",
-        "year_asc": "release_year",
-        "year_desc": "-release_year",
-        "rating_asc": "rating",
-        "rating_desc": "-rating",
-    }
-
-    order = sort_map.get(sort, "-id")
-
-    qs = Review.objects.all()
-    if search_txt:
-        qs = qs.filter(
-            Q(title__icontains=search_txt) |
-            Q(director__icontains=search_txt) |
-            Q(actors__icontains=search_txt))  # 제목, 감독, 배우로 검색
-    
-
-    if source == "tmdb":
-        qs = qs.filter(is_from_tmdb=True)
-    elif source == "user":
-        qs = qs.filter(is_from_tmdb=False)
-
-    reviews = qs.order_by(order)
-
-    return render(request, "reviews/list.html", {"reviews": reviews, "sort": sort})
 
 def review_detail(request, pk):
     review = get_object_or_404(Review, pk=pk)

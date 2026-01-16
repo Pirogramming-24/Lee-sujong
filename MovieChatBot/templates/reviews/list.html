@@ -1,113 +1,147 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Movie Reviews</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
   </head>
-
   <body>
-    <h1>My Movie Reviews</h1>
-    <a href="{% url 'reviews:chat_page' %}">챗봇</a>
+    <main class="container">
+      <div class="topbar">
+        <div class="nav-links">
+          <span class="badge">My Movie Reviews</span>
+          <a class="badge" href="{% url 'reviews:chat_page' %}">챗봇</a>
+          <a class="badge" href="{% url 'reviews:create' %}">리뷰 작성</a>
+        </div>
+      </div>
 
-    <!-- TMDB → DB 저장 버튼 -->
-    <form method="post" action="{% url 'reviews:tmdb_sync' %}">
-      {% csrf_token %}
-      <button type="submit">TMDB 인기 영화 20개 불러오기</button>
-    </form>
+      <h1>My Movie Reviews</h1>
 
-    <div class="search-box">
-      <form action="/">
-        <input
-          type="input"
-          name="search_txt"
-          placeholder="검색어를 입력하세요"
-          value="{{ search_txt|default:'' }}"
-        />
-        <input type="submit" value="검색" />
-      </form>
-    </div>
+      <!-- TMDB → DB 저장 버튼 -->
+      <div class="actions">
+        <form method="post" action="{% url 'reviews:tmdb_sync' %}">
+          {% csrf_token %}
+          <button type="submit">TMDB 인기 영화 20개 불러오기</button>
+        </form>
+      </div>
 
-    <br />
+      <!-- 검색 -->
+      <div class="search-box card">
+        <form action="{% url 'reviews:list' %}" method="get">
+          <input
+            type="text"
+            name="search_txt"
+            placeholder="제목/감독으로 검색"
+            value="{{ search_txt|default:'' }}"
+          />
+          <input type="submit" value="검색" />
+          {% if source %}
+          <input type="hidden" name="source" value="{{ source }}" />
+          {% endif %} {% if sort %}
+          <input type="hidden" name="sort" value="{{ sort }}" />
+          {% endif %}
+        </form>
+      </div>
 
-    <!-- 필터 -->
-    <div>
-      <strong>필터:</strong>
-      <a href="{% url 'reviews:list' %}?sort={{ sort }}">전체</a> |
-      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=tmdb">TMDB</a> |
-      <a href="{% url 'reviews:list' %}?sort={{ sort }}&source=user"
-        >직접 등록</a
-      >
-    </div>
+      <!-- 필터 -->
+      <div class="filter-sort">
+        <strong>필터</strong>
+        <a
+          href="{% url 'reviews:list' %}?sort={{ sort }}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >전체</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort={{ sort }}&source=tmdb{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >TMDB</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort={{ sort }}&source=user{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >직접 등록</a
+        >
+      </div>
 
-    <br />
+      <!-- 정렬 -->
+      <div class="filter-sort">
+        <strong>정렬</strong>
+        <a
+          href="{% url 'reviews:list' %}?sort=year_desc{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >최신순</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort=year_asc{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >오래된순</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort=rating_desc{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >별점 높은순</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort=rating_asc{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >별점 낮은순</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort=title_asc{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >제목순</a
+        >
+        <a
+          href="{% url 'reviews:list' %}?sort=title_desc{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+          >제목 역순</a
+        >
+      </div>
 
-    <a href="{% url 'reviews:create' %}">리뷰 작성</a>
-
-    <!-- 정렬 -->
-    <div>
-      <br />
-      <strong>정렬:</strong>
-      <a
-        href="{% url 'reviews:list' %}?sort=year_desc{% if source %}&source={{ source }}{% endif %}"
-        >최신순</a
-      >
-      |
-      <a
-        href="{% url 'reviews:list' %}?sort=year_asc{% if source %}&source={{ source }}{% endif %}"
-        >오래된순</a
-      >
-      |
-      <a
-        href="{% url 'reviews:list' %}?sort=rating_desc{% if source %}&source={{ source }}{% endif %}"
-        >별점 높은순</a
-      >
-      |
-      <a
-        href="{% url 'reviews:list' %}?sort=rating_asc{% if source %}&source={{ source }}{% endif %}"
-        >별점 낮은순</a
-      >
-      |
-      <a
-        href="{% url 'reviews:list' %}?sort=title_asc{% if source %}&source={{ source }}{% endif %}"
-        >제목순</a
-      >
-      |
-      <a
-        href="{% url 'reviews:list' %}?sort=title_desc{% if source %}&source={{ source }}{% endif %}"
-        >제목 역순</a
-      >
-    </div>
-
-    <ul>
-      {% for r in reviews %}
-      <li style="display: flex; gap: 12px; align-items: flex-start">
-        <!-- 포스터 -->
-        {% if r.user_poster_image %}
-        <img
-          src="{{ r.user_poster_image.url }}"
-          alt="{{ r.title }}"
-          width="80"
-        />
-        {% elif r.tmdb_poster_url %}
-        <img src="{{ r.tmdb_poster_url }}" alt="{{ r.title }}" width="80" />
-        {% endif %}
-
-        <div>
-          <!-- 출처 표시 -->
-          {% if r.is_from_tmdb %}
-          <strong>[TMDB]</strong>
-          {% else %}
-          <strong>[USER]</strong>
+      <!-- 리스트 -->
+      <div class="movie-grid">
+        {% for r in reviews %}
+        <div class="movie-card">
+          {% if r.user_poster_image %}
+          <img src="{{ r.user_poster_image.url }}" />
+          {% elif r.tmdb_poster_url %}
+          <img src="{{ r.tmdb_poster_url }}" />
           {% endif %}
 
-          <a href="{% url 'reviews:detail' r.pk %}"> {{ r.title }} </a>
-          ({{ r.release_year }}) / {{ r.genre }} / ★{{ r.rating }}
+          <div class="content">
+            <span class="badge">
+              {% if r.is_from_tmdb %}TMDB{% else %}USER{% endif %}
+            </span>
+            <h3>
+              <a href="{% url 'reviews:detail' r.pk %}">{{ r.title }}</a>
+            </h3>
+            <div class="meta">
+              {{ r.release_year }} · {{ r.genre }} · ★{{ r.rating }}
+            </div>
+          </div>
         </div>
-      </li>
-      {% empty %}
-      <li>아직 리뷰가 없습니다.</li>
-      {% endfor %}
-    </ul>
+        {% endfor %}
+      </div>
+      <!-- 페이지네이션 -->
+      <div
+        class="pagination"
+        style="margin: 18px 0; display: flex; gap: 10px; align-items: center"
+      >
+        {% if page_obj.has_previous %}
+        <a
+          class="badge"
+          href="?page={{ page_obj.previous_page_number }}{% if sort %}&sort={{ sort }}{% endif %}{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+        >
+          ← 이전
+        </a>
+        {% endif %}
+
+        <span class="badge">
+          {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a
+          class="badge"
+          href="?page={{ page_obj.next_page_number }}{% if sort %}&sort={{ sort }}{% endif %}{% if source %}&source={{ source }}{% endif %}{% if search_txt %}&search_txt={{ search_txt }}{% endif %}"
+        >
+          다음 →
+        </a>
+        {% endif %}
+      </div>
+    </main>
   </body>
 </html>
